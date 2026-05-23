@@ -29,7 +29,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
             entity.Property(e => e.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETDATE()");
+                .HasDefaultValueSql("NOW()");
         });
 
         // Configuración de Users
@@ -41,7 +41,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.UserTypeId).IsRequired();
             entity.Property(e => e.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETDATE()");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.IsActive)
                 .IsRequired()
                 .HasDefaultValue(true);
@@ -64,7 +64,7 @@ public class ApplicationDbContext : DbContext
             entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
             entity.Property(e => e.CreatedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETDATE()");
+                .HasDefaultValueSql("NOW()");
         });
 
         // Configuración de UserTypeMenus (tabla de relación)
@@ -73,7 +73,7 @@ public class ApplicationDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.AssignedAt)
                 .IsRequired()
-                .HasDefaultValueSql("GETDATE()");
+                .HasDefaultValueSql("NOW()");
         });
     }
 }

@@ -106,8 +106,10 @@ public partial class ContextDB : DbContext
     public virtual DbSet<library_permissions> library_permissions { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=tcp:sql-therapyhub-dev-001.database.windows.net,1433;Database=THERAPYHUB;User ID=adminsql;Password=SqlDev#2026!;Encrypt=True;TrustServerCertificate=False;MultipleActiveResultSets=True;");
+    {
+        if (!optionsBuilder.IsConfigured)
+            optionsBuilder.UseNpgsql("Host=dpg-d88fha0jo6nc73cr09mg-a.oregon-postgres.render.com;Database=therapyhub_db;Username=therapyhub_db_user;Password=W0cABdZ0FfFIFr9QVjhbbT022DgiuEAi;Port=5432;SslMode=Require");
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -115,7 +117,7 @@ public partial class ContextDB : DbContext
         {
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(sysdatetime())");
+                .HasDefaultValueSql("NOW()");
         });
 
         modelBuilder.Entity<Actors>(entity =>
@@ -127,7 +129,7 @@ public partial class ContextDB : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.DeletedAt).HasPrecision(0);
             entity.Property(e => e.Email).HasMaxLength(255);
             entity.Property(e => e.FullName).HasMaxLength(255);
@@ -147,7 +149,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(3)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.DeletedAt).HasPrecision(3);
             entity.Property(e => e.EditedAt).HasPrecision(3);
         });
@@ -158,8 +160,8 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
         });
@@ -173,7 +175,7 @@ public partial class ContextDB : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(sysdatetime())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.Emoji).HasMaxLength(10);
             entity.Property(e => e.GuardianName)
                 .HasMaxLength(150)
@@ -185,7 +187,7 @@ public partial class ContextDB : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Companie__3214EC073FCE0C3C");
 
             entity.Property(e => e.CreatedAt).HasPrecision(0);
-            entity.Property(e => e.DeletedAt).HasColumnType("datetime");
+            entity.Property(e => e.DeletedAt).HasColumnType("timestamp");
             entity.Property(e => e.Name)
                 .HasMaxLength(150)
                 .IsUnicode(false);
@@ -200,7 +202,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name)
                 .HasMaxLength(150)
@@ -236,7 +238,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(sysdatetime())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.Description)
                 .HasMaxLength(500)
                 .IsUnicode(false);
@@ -258,13 +260,13 @@ public partial class ContextDB : DbContext
 
             entity.HasIndex(e => new { e.FolderId, e.FileName }, "UX_Files_Folder_FileName")
                 .IsUnique()
-                .HasFilter("([IsDeleted]=(0))");
+                .HasFilter("\"IsDeleted\" = false");
 
             entity.Property(e => e.DeletedAt).HasPrecision(0);
             entity.Property(e => e.FileName).HasMaxLength(255);
             entity.Property(e => e.UploadedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
         });
 
         modelBuilder.Entity<FilesTypes>(entity =>
@@ -297,7 +299,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.DeletedAt).HasPrecision(0);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(200);
@@ -317,7 +319,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.MasteryCriteria).HasMaxLength(100);
             entity.Property(e => e.Name).HasMaxLength(255);
         });
@@ -328,9 +330,9 @@ public partial class ContextDB : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.DeleteAt).HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -343,8 +345,8 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
-            entity.Property(e => e.DeleteAt).HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()");
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<JobTitles>(entity =>
@@ -352,8 +354,8 @@ public partial class ContextDB : DbContext
             entity.HasKey(e => e.Id).HasName("PK__JobTitle__3214EC076C5254CF");
 
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
             entity.Property(e => e.Description)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -375,7 +377,7 @@ public partial class ContextDB : DbContext
 
         modelBuilder.Entity<LibraryItemFiles>(entity =>
         {
-            entity.HasIndex(e => e.LibraryItemId, "IX_LibraryItemFiles_ItemId").HasFilter("([IsDeleted]=(0))");
+            entity.HasIndex(e => e.LibraryItemId, "IX_LibraryItemFiles_ItemId").HasFilter("\"IsDeleted\" = false");
 
             entity.HasOne(d => d.LibraryItem).WithMany(p => p.LibraryItemFiles)
                 .HasForeignKey(d => d.LibraryItemId)
@@ -386,16 +388,16 @@ public partial class ContextDB : DbContext
                 .HasMaxLength(200)
                 .HasDefaultValue("");
             entity.Property(e => e.FileName).HasMaxLength(500);
-            entity.Property(e => e.UploadedAt).HasDefaultValueSql("(getutcdate())");
+            entity.Property(e => e.UploadedAt).HasDefaultValueSql("NOW()");
         });
 
         modelBuilder.Entity<LibraryItems>(entity =>
         {
-            entity.HasIndex(e => e.CategoryId, "IX_LibraryItems_CategoryId").HasFilter("([IsDeleted]=(0))");
+            entity.HasIndex(e => e.CategoryId, "IX_LibraryItems_CategoryId").HasFilter("\"IsDeleted\" = false");
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(sysdatetime())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.DeletedAt).HasPrecision(0);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(255);
@@ -410,7 +412,7 @@ public partial class ContextDB : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK__Menus__3214EC07846E3A0D");
 
-            entity.Property(e => e.CreatedAt).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.CreatedAt).HasDefaultValueSql("NOW()");
             entity.Property(e => e.Icon).HasMaxLength(100);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Route).HasMaxLength(255);
@@ -425,7 +427,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.ReadAt)
                 .HasPrecision(3)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
         });
 
         modelBuilder.Entity<NoteCategories>(entity =>
@@ -434,7 +436,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.Id).ValueGeneratedOnAdd();
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name)
@@ -471,7 +473,7 @@ public partial class ContextDB : DbContext
         {
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.DueDate).HasPrecision(0);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Title).HasMaxLength(200);
@@ -490,9 +492,9 @@ public partial class ContextDB : DbContext
                 .HasMaxLength(50)
                 .IsUnicode(false);
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
-            entity.Property(e => e.DeleteAt).HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -506,7 +508,7 @@ public partial class ContextDB : DbContext
             entity.Property(e => e.Actions).HasMaxLength(500);
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(sysdatetime())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.DeletedAt).HasPrecision(0);
             entity.Property(e => e.Notes).HasMaxLength(500);
             entity.Property(e => e.SessionDate).HasPrecision(0);
@@ -516,7 +518,7 @@ public partial class ContextDB : DbContext
         {
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
         });
 
         modelBuilder.Entity<StaffDocumentTypes>(entity =>
@@ -545,7 +547,7 @@ public partial class ContextDB : DbContext
         {
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Reason).HasMaxLength(500);
         });
@@ -577,7 +579,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
-                .HasDefaultValueSql("(getdate())");
+                .HasDefaultValueSql("NOW()");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
         });
 
@@ -586,8 +588,8 @@ public partial class ContextDB : DbContext
             entity.HasKey(e => e.Id).HasName("PK__UserType__3214EC07707BCDD4");
 
             entity.Property(e => e.AssignedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<UserTypes>(entity =>
@@ -595,8 +597,8 @@ public partial class ContextDB : DbContext
             entity.HasKey(e => e.Id).HasName("PK__UserType__3214EC07C9522850");
 
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -607,8 +609,8 @@ public partial class ContextDB : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Users__3214EC0777CCE6C5");
 
             entity.Property(e => e.CreatedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
         });
 
         modelBuilder.Entity<library_permissions>(entity =>
@@ -618,8 +620,8 @@ public partial class ContextDB : DbContext
             entity.HasIndex(e => e.actorId, "UQ_library_permissions_actor").IsUnique();
 
             entity.Property(e => e.assignedAt)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp");
         });
 
         OnModelCreatingPartial(modelBuilder);
