@@ -62,7 +62,7 @@ public class TipoUsuarioService : ITipoUsuarioService
         }
 
         var tipoUsuario = _mapper.Map<Models.UserTypes>(request);
-        tipoUsuario.CreatedAt = DateTime.Now;
+        tipoUsuario.CreatedAt = DateTime.UtcNow;
 
         await _tipoUsuarioRepositorio.AddAsync(tipoUsuario);
         await _unitOfWork.SaveChangesAsync();

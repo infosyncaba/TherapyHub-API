@@ -104,7 +104,7 @@ public class MenuService : IMenuService
         {
             UserTypeId = request.UserTypeId,
             MenuId = menuId,
-            AssignedAt = DateTime.Now
+            AssignedAt = DateTime.UtcNow
         }).ToList();
 
         await _context.UserTypeMenus.AddRangeAsync(nuevasAsignaciones);
@@ -143,7 +143,7 @@ public class MenuService : IMenuService
             SortOrder = request.Orden,
             ParentId = request.ParentId,
             IsActive = request.IsActive,
-            CreatedAt = DateTime.Now
+            CreatedAt = DateTime.UtcNow
         };
         await _menuRepositorio.AddAsync(menu);
         await _context.SaveChangesAsync();

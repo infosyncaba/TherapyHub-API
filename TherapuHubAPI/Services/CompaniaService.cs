@@ -41,7 +41,7 @@ public class CompaniaService : ICompaniaService
         }
 
         var compania = _mapper.Map<Models.Companies>(request);
-        compania.CreatedAt = DateTime.Now;
+        compania.CreatedAt = DateTime.UtcNow;
         compania.IsActive = request.IsActive;
 
         await _companiaRepositorio.AddAsync(compania);
@@ -115,7 +115,7 @@ public class CompaniaService : ICompaniaService
         }
 
         compania.IsDeleted = true;
-        compania.DeletedAt = DateTime.Now;
+        compania.DeletedAt = DateTime.UtcNow;
         compania.DeleteUserId = deleteUserId;
 
         _companiaRepositorio.Update(compania);

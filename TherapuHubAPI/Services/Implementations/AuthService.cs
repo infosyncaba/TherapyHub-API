@@ -83,7 +83,7 @@ public class AuthService : IAuthService
             Nombre = usuario.Actor.FullName,
             UserTypeId = usuario.UserTypeId,
             TipoUsuarioNombre = tipoUsuarioNombre,
-            ExpiraEn = DateTime.Now.AddHours(24),
+            ExpiraEn = DateTime.UtcNow.AddHours(24),
             RequiresPasswordReset = requiresPasswordReset,
             EsSistema = tipoUsuario?.IsSystem == true,
             ActorId = usuario.ActorId
@@ -117,7 +117,7 @@ public class AuthService : IAuthService
             issuer: jwtIssuer,
             audience: jwtAudience,
             claims: claims,
-            expires: DateTime.Now.AddHours(jwtExpirationHours),
+            expires: DateTime.UtcNow.AddHours(jwtExpirationHours),
             signingCredentials: credentials
         );
 

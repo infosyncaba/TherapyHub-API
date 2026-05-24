@@ -161,7 +161,7 @@ public partial class ContextDB : DbContext
             entity.Property(e => e.Code).HasMaxLength(50);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
         });
@@ -187,7 +187,7 @@ public partial class ContextDB : DbContext
             entity.HasKey(e => e.Id).HasName("PK__Companie__3214EC073FCE0C3C");
 
             entity.Property(e => e.CreatedAt).HasPrecision(0);
-            entity.Property(e => e.DeletedAt).HasColumnType("timestamp");
+            entity.Property(e => e.DeletedAt).HasColumnType("timestamp with time zone");
             entity.Property(e => e.Name)
                 .HasMaxLength(150)
                 .IsUnicode(false);
@@ -331,8 +331,8 @@ public partial class ContextDB : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
-            entity.Property(e => e.DeleteAt).HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp with time zone");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -346,7 +346,7 @@ public partial class ContextDB : DbContext
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasDefaultValueSql("NOW()");
-            entity.Property(e => e.DeleteAt).HasColumnType("timestamp");
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<JobTitles>(entity =>
@@ -355,7 +355,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
             entity.Property(e => e.Description)
                 .HasMaxLength(100)
                 .IsUnicode(false);
@@ -493,8 +493,8 @@ public partial class ContextDB : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
-            entity.Property(e => e.DeleteAt).HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp with time zone");
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
@@ -589,7 +589,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.AssignedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<UserTypes>(entity =>
@@ -598,7 +598,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.Name).HasMaxLength(100);
@@ -610,7 +610,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<library_permissions>(entity =>
@@ -621,7 +621,7 @@ public partial class ContextDB : DbContext
 
             entity.Property(e => e.assignedAt)
                 .HasDefaultValueSql("NOW()")
-                .HasColumnType("timestamp");
+                .HasColumnType("timestamp with time zone");
         });
 
         OnModelCreatingPartial(modelBuilder);

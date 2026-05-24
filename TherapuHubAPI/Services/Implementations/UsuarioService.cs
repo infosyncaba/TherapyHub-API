@@ -113,14 +113,14 @@ public class UsuarioService : IUsuarioService
             Email = request.Correo,
             CompanyId = targetCompaniaId,
             IsActive = true,
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
         };
 
         var usuario = new Users
         {
             UserTypeId = request.UserTypeId,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(defaultPassword),
-            CreatedAt = DateTime.Now,
+            CreatedAt = DateTime.UtcNow,
             IsActive = true,
             MustResetPassword = true,
             Actor = actor,
@@ -283,7 +283,7 @@ public class UsuarioService : IUsuarioService
         var deletingUser = await _usuarioRepositorio.GetByIdAsync(deleteUserId);
 
         usuario.Actor.IsDeleted = true;
-        usuario.Actor.DeletedAt = DateTime.Now;
+        usuario.Actor.DeletedAt = DateTime.UtcNow;
         usuario.Actor.DeletedByActorId = deletingUser?.ActorId;
 
         _usuarioRepositorio.Update(usuario);

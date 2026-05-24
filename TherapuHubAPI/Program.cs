@@ -1,17 +1,19 @@
-using System.Text;
 using FluentValidation;
 using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using TherapuHubAPI.Configuration;
+using System.Text;
 using TherapuHubAPI.Models;
 using TherapuHubAPI.Repositorio;
 using TherapuHubAPI.Repositorio.IRepositorio;
-using TherapuHubAPI.Services.IServices;
-using TherapuHubAPI.Services.Implementations;
 using TherapuHubAPI.Services;
+using TherapuHubAPI.Services.Implementations;
+using TherapuHubAPI.Services.IServices;
+
+
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,7 +72,7 @@ builder.Services.AddScoped<ISessionNotesService, SessionNotesService>();
 builder.Services.AddScoped<IActorRelationshipService, ActorRelationshipService>();
 builder.Services.AddScoped<INoteCategoryService, NoteCategoryService>();
 builder.Services.AddScoped<ILibraryItemService, LibraryItemService>();
-builder.Services.AddSingleton<IFileStorageService, AzureBlobStorageService>();
+builder.Services.AddSingleton<IFileStorageService, CloudflareR2StorageService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
@@ -177,43 +179,23 @@ var app = builder.Build();
 
 //====================ENTORNO LOCAL====================
 //Configure the HTTP request pipeline.
-//app.UseSwagger();
-
-
-//if (app.Environment.IsDevelopment())
-//{
-//    app.UseSwagger();
-//    app.UseSwaggerUI();
-//}
-
-//// CORS debe estar antes de UseHttpsRedirection para que funcione correctamente
-//app.UseCors("AllowFrontend");
-
-//// Solo redirigir HTTPS en producción, no en desarrollo
-//if (!app.Environment.IsDevelopment())
-//{
-//    app.UseHttpsRedirection();
-//}
-
-//app.UseAuthentication();
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run();
-
-//====================FIN ENTORNO LOCAL====================
-//====================FIN ENTORNO PUBLICADO====================
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TherapuHub API v1");
-    c.RoutePrefix = "swagger";
-});
 
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+// CORS debe estar antes de UseHttpsRedirection para que funcione correctamente
 app.UseCors("AllowFrontend");
 
-app.Urls.Add("http://0.0.0.0:8080");
+// Solo redirigir HTTPS en producción, no en desarrollo
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -221,4 +203,24 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
+//====================FIN ENTORNO LOCAL====================
+//====================FIN ENTORNO PUBLICADO====================
+//app.UseSwagger();
+//app.UseSwaggerUI(c =>
+//{
+//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TherapuHub API v1");
+//    c.RoutePrefix = "swagger";
+//});
+
+//app.UseCors("AllowFrontend");
+
+//app.Urls.Add("http://0.0.0.0:8080");
+
+//app.UseAuthentication();
+//app.UseAuthorization();
+
+//app.MapControllers();
+
+//app.Run();
 //====================FIN ENTORNO PUBLICADO====================

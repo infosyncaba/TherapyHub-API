@@ -84,7 +84,7 @@ public class EventosService : IEventosService
         try
         {
             var evento = _mapper.Map<Events>(request);
-            evento.CreatedAt = DateTime.Now;
+            evento.CreatedAt = DateTime.UtcNow;
             evento.CompanyId = user.Actor.CompanyId;
 
             await _unitOfWork.Events.AddAsync(evento);
