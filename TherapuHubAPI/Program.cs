@@ -127,7 +127,10 @@ builder.Services.AddCors(options =>
                 "https://127.0.0.1:8080",
                 "https://127.0.0.1:8082",
                 "https://127.0.0.1:5173",
-                "https://therapyhub-suite.vercel.app"
+                "https://therapyhub-suite.vercel.app",
+                "https://syncaba-api.onrender.com",
+                "https://syncaba.net",
+                "https://www.syncaba.net"
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
@@ -177,25 +180,14 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-//====================ENTORNO LOCAL====================
-//Configure the HTTP request pipeline.
 app.UseSwagger();
-
-
-if (app.Environment.IsDevelopment())
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TherapuHub API v1");
+    c.RoutePrefix = "swagger";
+});
 
-// CORS debe estar antes de UseHttpsRedirection para que funcione correctamente
 app.UseCors("AllowFrontend");
-
-// Solo redirigir HTTPS en producción, no en desarrollo
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -203,24 +195,3 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
-
-//====================FIN ENTORNO LOCAL====================
-//====================FIN ENTORNO PUBLICADO====================
-//app.UseSwagger();
-//app.UseSwaggerUI(c =>
-//{
-//    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TherapuHub API v1");
-//    c.RoutePrefix = "swagger";
-//});
-
-//app.UseCors("AllowFrontend");
-
-//app.Urls.Add("http://0.0.0.0:8080");
-
-//app.UseAuthentication();
-//app.UseAuthorization();
-
-//app.MapControllers();
-
-//app.Run();
-//====================FIN ENTORNO PUBLICADO====================
