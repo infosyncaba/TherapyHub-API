@@ -130,7 +130,8 @@ builder.Services.AddCors(options =>
                 "https://therapyhub-suite.vercel.app",
                 "https://syncaba-api.onrender.com",
                 "https://syncaba.net",
-                "https://www.syncaba.net"
+                "https://www.syncaba.net",
+                "https://therapyhub-suite.info-syncaba.workers.dev"
               )
               .AllowAnyHeader()
               .AllowAnyMethod()
