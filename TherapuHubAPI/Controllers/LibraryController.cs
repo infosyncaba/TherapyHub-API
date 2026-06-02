@@ -217,9 +217,17 @@ public class LibraryController : ControllerBase
     [HttpGet("items/{id:int}/files/{associationId:int}/download")]
     public async Task<IActionResult> DownloadFile(int id, int associationId)
     {
-        var result = await _service.DownloadFileAsync(id, associationId);
-        if (result == null) return NotFound();
-        return File(result.Value.Stream, result.Value.ContentType, result.Value.FileName);
+        try
+        {
+            var result = await _service.DownloadFileAsync(id, associationId);
+            if (result == null) return NotFound();
+            return File(result.Value.Stream, result.Value.ContentType, result.Value.FileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error downloading file {AssociationId} for library item {Id}", associationId, id);
+            return StatusCode(500, "Error retrieving file from storage.");
+        }
     }
 
     /// <summary>Delete a file from a library item. Requires canDelete permission.</summary>

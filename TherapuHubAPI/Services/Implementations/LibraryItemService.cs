@@ -1,3 +1,4 @@
+using Amazon.S3;
 using TherapuHubAPI.DTOs.Requests.Library;
 using TherapuHubAPI.DTOs.Responses.Library;
 using TherapuHubAPI.Models;
@@ -177,11 +178,22 @@ public class LibraryItemService : ILibraryItemService
 
         try
         {
-            return await _storage.GetFileAsync(entry.BlobPath);
+            var (stream, contentType, _) = await _storage.GetFileAsync(entry.BlobPath);
+            return (stream, contentType, entry.FileName);
         }
         catch (FileNotFoundException)
         {
             return null;
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _logger.LogWarning("R2 object not found for blob path: {BlobPath}", entry.BlobPath);
+            return null;
+        }
+        catch (AmazonS3Exception ex)
+        {
+            _logger.LogError(ex, "R2 error downloading blob: {BlobPath}", entry.BlobPath);
+            throw;
         }
     }
 

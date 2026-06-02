@@ -21,5 +21,7 @@ public partial class Clients
 
     public string? Emoji { get; set; }
 
+    public string? Diagnosis { get; set; }
+
     public int ActorId { get; set; }
 }

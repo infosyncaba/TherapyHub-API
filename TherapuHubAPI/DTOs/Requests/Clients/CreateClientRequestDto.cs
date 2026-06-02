@@ -15,6 +15,7 @@ public class CreateClientRequestDto
     public int? RBTId { get; set; }
 
     public string? Emoji { get; set; }
+    public string? Diagnosis { get; set; }
 }
 
 public class UpdateClientRequestDto
@@ -30,4 +31,5 @@ public class UpdateClientRequestDto
     public int? RBTId { get; set; }
 
     public string? Emoji { get; set; }
+    public string? Diagnosis { get; set; }
 }

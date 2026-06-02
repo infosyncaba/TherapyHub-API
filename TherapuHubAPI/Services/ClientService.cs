@@ -117,6 +117,7 @@ public class ClientService : IClientService
             ClientStatusId = request.ClientStatusId,
             RBTId = request.RBTId,
             Emoji = request.Emoji,
+            Diagnosis = request.Diagnosis?.Trim(),
             CreatedAt = DateTime.UtcNow,
             Actor = actor,
         };
@@ -150,6 +151,7 @@ public class ClientService : IClientService
         client.ClientStatusId = request.ClientStatusId;
         client.RBTId = request.RBTId;
         client.Emoji = request.Emoji;
+        client.Diagnosis = request.Diagnosis?.Trim();
 
         _clientRepositorio.Update(client);
         await _unitOfWork.SaveChangesAsync();
@@ -304,6 +306,7 @@ public class ClientService : IClientService
             RBTId = c.RBTId,
             RBTName = rbt?.Actor.FullName,
             Emoji = c.Emoji,
+            Diagnosis = c.Diagnosis,
             CreatedAt = c.CreatedAt,
         };
     }

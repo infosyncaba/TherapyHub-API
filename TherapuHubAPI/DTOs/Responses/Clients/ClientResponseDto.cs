@@ -23,6 +23,7 @@ public class ClientResponseDto
     public string? RBTName { get; set; }
 
     public string? Emoji { get; set; }
+    public string? Diagnosis { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
