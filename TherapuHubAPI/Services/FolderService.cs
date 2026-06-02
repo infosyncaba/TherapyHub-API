@@ -37,12 +37,8 @@ public class FolderService : IFolderService
 
     public async Task<IEnumerable<FolderResponseDto>> GetFoldersByTypeAsync(int companyId, byte folderTypeId, int actorId, int userTypeId, int? sectionId = null)
     {
-        var isSystem = await _context.UserTypes.Where(t => t.Id == userTypeId).Select(t => t.IsSystem).FirstOrDefaultAsync();
-
-        // System users see all folders; regular users only see global or their own
-        var folders = isSystem
-            ? await _folderRepo.GetByCompanyAndTypeAsync(companyId, folderTypeId, sectionId)
-            : await _folderRepo.GetVisibleByCompanyAndTypeAsync(companyId, folderTypeId, actorId, sectionId);
+        // Everyone sees only global folders or folders they created — privacy applies to all users
+        var folders = await _folderRepo.GetVisibleByCompanyAndTypeAsync(companyId, folderTypeId, actorId, sectionId);
 
         var folderTypes = await _context.FolderTypes.ToListAsync();
 
@@ -58,11 +54,8 @@ public class FolderService : IFolderService
 
     public async Task<IEnumerable<FolderResponseDto>> GetSubfoldersAsync(int parentFolderId, int companyId, int actorId, int userTypeId)
     {
-        var isSystem = await _context.UserTypes.Where(t => t.Id == userTypeId).Select(t => t.IsSystem).FirstOrDefaultAsync();
-
-        var folders = isSystem
-            ? await _folderRepo.GetSubfoldersAsync(parentFolderId, companyId)
-            : await _folderRepo.GetVisibleSubfoldersAsync(parentFolderId, companyId, actorId);
+        // Everyone sees only global subfolders or subfolders they created — privacy applies to all users
+        var folders = await _folderRepo.GetVisibleSubfoldersAsync(parentFolderId, companyId, actorId);
 
         var folderTypes = await _context.FolderTypes.ToListAsync();
         var result = new List<FolderResponseDto>();
