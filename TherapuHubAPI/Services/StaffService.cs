@@ -54,7 +54,6 @@ public class StaffService : IStaffService
         _logger.LogInformation("Creating staff {FirstName} {LastName} for company {CompanyId}", request.FirstName, request.LastName, companyId);
 
         var contractDate = request.ContractDate ?? DateOnly.FromDateTime(DateTime.UtcNow);
-        var dateOfBirth = request.DateOfBirth ?? DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-30));
 
         var actor = new Actors
         {
@@ -70,7 +69,7 @@ public class StaffService : IStaffService
         var staff = new Staff
         {
             RoleId = request.RoleId,
-            DateOfBirth = dateOfBirth,
+            DateOfBirth = request.DateOfBirth,
             StatusId = request.StatusId,
             ContractDate = contractDate,
             CreatedAt = DateTime.UtcNow,

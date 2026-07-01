@@ -1361,7 +1361,8 @@ namespace TherapuHubAPI.Migrations
                         .HasColumnType("timestamp(0) with time zone")
                         .HasDefaultValueSql("NOW()");
 
-                    b.Property<DateOnly>("DateOfBirth")
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .IsRequired(false)
                         .HasColumnType("date");
 
                     b.Property<short>("RoleId")

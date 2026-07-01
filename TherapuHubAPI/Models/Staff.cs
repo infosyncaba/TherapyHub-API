@@ -9,7 +9,7 @@ public partial class Staff
 
     public short RoleId { get; set; }
 
-    public DateOnly DateOfBirth { get; set; }
+    public DateOnly? DateOfBirth { get; set; }
 
     public byte StatusId { get; set; }
 
