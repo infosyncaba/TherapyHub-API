@@ -505,12 +505,12 @@ public partial class ContextDB : DbContext
         {
             entity.HasKey(e => e.Id).HasName("PK_Sessions");
 
-            entity.Property(e => e.Actions).HasMaxLength(500);
+            entity.Property(e => e.Actions);
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(0)
                 .HasDefaultValueSql("NOW()");
             entity.Property(e => e.DeletedAt).HasPrecision(0);
-            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.Notes);
             entity.Property(e => e.SessionDate).HasPrecision(0);
         });
 
