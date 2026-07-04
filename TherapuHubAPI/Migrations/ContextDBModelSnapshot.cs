@@ -1352,6 +1352,9 @@ namespace TherapuHubAPI.Migrations
                     b.Property<int>("ActorId")
                         .HasColumnType("integer");
 
+                    b.Property<string>("Certifications")
+                        .HasColumnType("text");
+
                     b.Property<DateOnly>("ContractDate")
                         .HasColumnType("date");
 

@@ -18,4 +18,6 @@ public partial class Staff
     public DateTime CreatedAt { get; set; }
 
     public int ActorId { get; set; }
+
+    public string? Certifications { get; set; }
 }

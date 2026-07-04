@@ -72,6 +72,7 @@ public class StaffService : IStaffService
             DateOfBirth = request.DateOfBirth,
             StatusId = request.StatusId,
             ContractDate = contractDate,
+            Certifications = request.Certifications,
             CreatedAt = DateTime.UtcNow,
             Actor = actor,
         };
@@ -213,6 +214,7 @@ public class StaffService : IStaffService
         staff.DateOfBirth = request.DateOfBirth ?? staff.DateOfBirth;
         staff.StatusId = request.StatusId;
         staff.ContractDate = request.ContractDate ?? staff.ContractDate;
+        staff.Certifications = request.Certifications;
 
         _staffRepositorio.Update(staff);
         await _unitOfWork.SaveChangesAsync();
@@ -288,6 +290,7 @@ public class StaffService : IStaffService
             Email = s.Actor.Email ?? string.Empty,
             StatusId = s.StatusId,
             StatusName = status?.Name,
+            Certifications = s.Certifications,
             ContractDate = s.ContractDate,
             CreatedAt = s.CreatedAt,
             IsActive = s.Actor.IsActive,
