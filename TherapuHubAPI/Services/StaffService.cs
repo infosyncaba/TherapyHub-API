@@ -240,8 +240,28 @@ public class StaffService : IStaffService
         _staffRepositorio.Remove(staff);
         _context.Actors.Remove(staff.Actor);
         await _unitOfWork.SaveChangesAsync();
+        await DeleteBirthdayEventAsync(id, companyId);
         _logger.LogInformation("Staff deleted Id: {Id}", id);
         return true;
+    }
+
+    private async Task DeleteBirthdayEventAsync(int staffId, int companyId)
+    {
+        try
+        {
+            var existing = await _unitOfWork.Events.FirstOrDefaultAsync(
+                e => e.StaffId == staffId && e.CompanyId == companyId);
+            if (existing != null)
+            {
+                _unitOfWork.Events.Remove(existing);
+                await _unitOfWork.SaveChangesAsync();
+                _logger.LogInformation("Birthday event deleted for staff Id: {StaffId}, EventId: {EventId}", staffId, existing.Id);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error deleting birthday event for staff Id: {StaffId}", staffId);
+        }
     }
 
     public async Task<bool> ToggleActiveAsync(int id, int companyId)
