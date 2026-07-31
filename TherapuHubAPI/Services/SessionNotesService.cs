@@ -33,7 +33,7 @@ public class SessionNotesService : ISessionNotesService
         {
             staffQuery = _context.Staff
                 .Where(s => s.RoleId == 1)
-                .Where(s => _context.Actors.Any(a => a.Id == s.ActorId && a.CompanyId == companyId && !a.IsDeleted));
+                .Where(s => _context.Actors.Any(a => a.Id == s.ActorId && a.CompanyId == companyId && !a.IsDeleted && a.IsActive));
         }
         else
         {
@@ -44,7 +44,8 @@ public class SessionNotesService : ISessionNotesService
                 .ToListAsync();
 
             staffQuery = _context.Staff
-                .Where(s => s.RoleId == 1 && targetActorIds.Contains(s.ActorId));
+                .Where(s => s.RoleId == 1 && targetActorIds.Contains(s.ActorId))
+                .Where(s => _context.Actors.Any(a => a.Id == s.ActorId && !a.IsDeleted && a.IsActive));
         }
 
         return await staffQuery
