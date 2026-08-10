@@ -48,6 +48,8 @@ public class SessionNotesService : ISessionNotesService
                 .Where(s => _context.Actors.Any(a => a.Id == s.ActorId && !a.IsDeleted && a.IsActive));
         }
 
+        staffQuery = staffQuery.Where(s => _context.StaffStatus.Any(st => st.Id == s.StatusId && st.IsActive));
+
         return await staffQuery
             .Join(_context.Actors, s => s.ActorId, a => a.Id, (s, a) => new RbtForSessionResponseDto
             {
