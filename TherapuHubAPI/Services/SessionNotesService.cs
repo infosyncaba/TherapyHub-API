@@ -57,6 +57,7 @@ public class SessionNotesService : ISessionNotesService
                 ActorId = s.ActorId,
                 Name = a.FullName,
             })
+            .OrderBy(r => r.Name)
             .ToListAsync();
     }
 
