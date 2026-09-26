@@ -17,6 +17,7 @@ public interface IUnitOfWork : IDisposable
     IGoalTrackersRepositorio GoalTrackers { get; }
     IGoalTrackerItemsRepositorio GoalTrackerItems { get; }
     ISessionNotesStatusRepositorio SessionNotesStatuses { get; }
+    IBehaviorFunctionsRepositorio BehaviorFunctions { get; }
     ILibraryItemRepositorio LibraryItems { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync();
@@ -40,6 +41,7 @@ public class UnitOfWork : IUnitOfWork
     public IGoalTrackersRepositorio GoalTrackers { get; private set; }
     public IGoalTrackerItemsRepositorio GoalTrackerItems { get; private set; }
     public ISessionNotesStatusRepositorio SessionNotesStatuses { get; private set; }
+    public IBehaviorFunctionsRepositorio BehaviorFunctions { get; private set; }
     public ILibraryItemRepositorio LibraryItems { get; private set; }
 
     public UnitOfWork(ContextDB context)
@@ -56,6 +58,7 @@ public class UnitOfWork : IUnitOfWork
         GoalTrackers = new GoalTrackersRepositorio(_context);
         GoalTrackerItems = new GoalTrackerItemsRepositorio(_context);
         SessionNotesStatuses = new SessionNotesStatusRepositorio(_context);
+        BehaviorFunctions = new BehaviorFunctionsRepositorio(_context);
         LibraryItems = new LibraryItemRepositorio(_context);
     }
 

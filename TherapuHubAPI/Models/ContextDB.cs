@@ -75,6 +75,8 @@ public partial class ContextDB : DbContext
 
     public virtual DbSet<RelationshipType> RelationshipType { get; set; }
 
+    public virtual DbSet<BehaviorFunctions> BehaviorFunctions { get; set; }
+
     public virtual DbSet<SessionNotesStatus> SessionNotesStatus { get; set; }
 
     public virtual DbSet<SessionsNotes> SessionsNotes { get; set; }
@@ -483,6 +485,18 @@ public partial class ContextDB : DbContext
         {
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
+                .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<BehaviorFunctions>(entity =>
+        {
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp with time zone");
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp with time zone");
+            entity.Property(e => e.IsActive).HasDefaultValue(true);
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
                 .IsUnicode(false);
         });
 
