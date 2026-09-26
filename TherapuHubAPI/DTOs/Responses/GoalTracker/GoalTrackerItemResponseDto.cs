@@ -10,5 +10,7 @@ public class GoalTrackerItemResponseDto
     public int StatusId { get; set; }
     public string StatusName { get; set; } = null!;
     public string StatusColor { get; set; } = null!;
+    public int? FunctionId { get; set; }
+    public string? FunctionName { get; set; }
     public DateTime CreatedAt { get; set; }
 }

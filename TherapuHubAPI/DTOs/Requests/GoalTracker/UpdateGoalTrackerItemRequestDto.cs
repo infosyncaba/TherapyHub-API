@@ -13,4 +13,7 @@ public class UpdateGoalTrackerItemRequestDto
 
     [Required]
     public int StatusId { get; set; }
+
+    // Only applies to the "Maladaptive Behaviors" category; ignored for the others
+    public int? FunctionId { get; set; }
 }

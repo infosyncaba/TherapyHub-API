@@ -43,6 +43,13 @@ public class GoalTrackerService : IGoalTrackerService
         return await BuildResponseAsync(tracker);
     }
 
+    private const string MaladaptiveCategoryName = "Maladaptive Behaviors";
+
+    // Function only applies to "Maladaptive Behaviors" items
+    private async Task<bool> IsMaladaptiveCategoryAsync(int categoryId) =>
+        await _context.GoalTrackerCategories
+            .AnyAsync(c => c.Id == categoryId && c.Name == MaladaptiveCategoryName);
+
     public async Task<GoalTrackerResponseDto> CreateRowAsync(CreateGoalTrackerRowRequestDto dto, int actorId)
     {
         var tracker = await _context.GoalTrackers
@@ -61,15 +68,20 @@ public class GoalTrackerService : IGoalTrackerService
             await _context.SaveChangesAsync();
         }
 
-        var items = dto.Items.Select(i => new GoalTrackerItems
+        var items = new List<GoalTrackerItems>();
+        foreach (var i in dto.Items)
         {
-            GoalTrackerId = tracker.Id,
-            CategoryId = (byte)i.CategoryId,
-            Name = i.Name.Trim(),
-            MasteryCriteria = i.MasteryCriteria?.Trim(),
-            StatusId = (byte)i.StatusId,
-            CreatedAt = DateTime.UtcNow,
-        }).ToList();
+            items.Add(new GoalTrackerItems
+            {
+                GoalTrackerId = tracker.Id,
+                CategoryId = (byte)i.CategoryId,
+                Name = i.Name.Trim(),
+                MasteryCriteria = i.MasteryCriteria?.Trim(),
+                StatusId = (byte)i.StatusId,
+                FunctionId = i.FunctionId.HasValue && await IsMaladaptiveCategoryAsync(i.CategoryId) ? i.FunctionId : null,
+                CreatedAt = DateTime.UtcNow,
+            });
+        }
 
         _context.GoalTrackerItems.AddRange(items);
         await _context.SaveChangesAsync();
@@ -85,11 +97,16 @@ public class GoalTrackerService : IGoalTrackerService
         item.Name = dto.Name.Trim();
         item.MasteryCriteria = dto.MasteryCriteria?.Trim();
         item.StatusId = (byte)dto.StatusId;
+        if (await IsMaladaptiveCategoryAsync(item.CategoryId))
+            item.FunctionId = dto.FunctionId;
 
         await _context.SaveChangesAsync();
 
         var status = await _context.GoalTrackerStatus.FindAsync(dto.StatusId);
-        return MapItemToDto(item, status);
+        var function = item.FunctionId.HasValue
+            ? await _context.BehaviorFunctions.FindAsync(item.FunctionId.Value)
+            : null;
+        return MapItemToDto(item, status, function?.Name);
     }
 
     public async Task<bool> DeleteItemAsync(long itemId)
@@ -115,15 +132,23 @@ public class GoalTrackerService : IGoalTrackerService
             .Where(s => statusIds.Contains(s.Id))
             .ToDictionaryAsync(s => s.Id);
 
+        var functionIds = items.Where(i => i.FunctionId.HasValue).Select(i => i.FunctionId!.Value).Distinct().ToList();
+        var functions = await _context.BehaviorFunctions
+            .Where(f => functionIds.Contains(f.Id))
+            .ToDictionaryAsync(f => f.Id, f => f.Name);
+
         return new GoalTrackerResponseDto
         {
             TrackerId = tracker.Id,
             OwnerActorId = tracker.OwnerActorId,
-            Items = items.Select(i => MapItemToDto(i, statuses.GetValueOrDefault((int)i.StatusId))),
+            Items = items.Select(i => MapItemToDto(
+                i,
+                statuses.GetValueOrDefault((int)i.StatusId),
+                i.FunctionId.HasValue ? functions.GetValueOrDefault(i.FunctionId.Value) : null)),
         };
     }
 
-    private static GoalTrackerItemResponseDto MapItemToDto(GoalTrackerItems item, GoalTrackerStatus? status) => new()
+    private static GoalTrackerItemResponseDto MapItemToDto(GoalTrackerItems item, GoalTrackerStatus? status, string? functionName) => new()
     {
         Id = item.Id,
         GoalTrackerId = item.GoalTrackerId,
@@ -133,6 +158,8 @@ public class GoalTrackerService : IGoalTrackerService
         StatusId = item.StatusId,
         StatusName = status?.Name ?? "",
         StatusColor = status?.Color ?? "#6b7280",
+        FunctionId = item.FunctionId,
+        FunctionName = functionName,
         CreatedAt = item.CreatedAt,
     };
 }
