@@ -18,5 +18,5 @@ public class CreateGoalTrackerItemDto
     public int StatusId { get; set; }
 
     // Only applies to the "Maladaptive Behaviors" category; ignored for the others
-    public int? FunctionId { get; set; }
+    public List<int>? FunctionIds { get; set; }
 }

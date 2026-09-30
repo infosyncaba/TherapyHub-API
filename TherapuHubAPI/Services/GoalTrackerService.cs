@@ -45,7 +45,7 @@ public class GoalTrackerService : IGoalTrackerService
 
     private const string MaladaptiveCategoryName = "Maladaptive Behaviors";
 
-    // Function only applies to "Maladaptive Behaviors" items
+    // Functions only apply to "Maladaptive Behaviors" items
     private async Task<bool> IsMaladaptiveCategoryAsync(int categoryId) =>
         await _context.GoalTrackerCategories
             .AnyAsync(c => c.Id == categoryId && c.Name == MaladaptiveCategoryName);
@@ -68,23 +68,39 @@ public class GoalTrackerService : IGoalTrackerService
             await _context.SaveChangesAsync();
         }
 
-        var items = new List<GoalTrackerItems>();
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        var created = new List<(GoalTrackerItems Item, List<int> FunctionIds)>();
         foreach (var i in dto.Items)
         {
-            items.Add(new GoalTrackerItems
+            var item = new GoalTrackerItems
             {
                 GoalTrackerId = tracker.Id,
                 CategoryId = (byte)i.CategoryId,
                 Name = i.Name.Trim(),
                 MasteryCriteria = i.MasteryCriteria?.Trim(),
                 StatusId = (byte)i.StatusId,
-                FunctionId = i.FunctionId.HasValue && await IsMaladaptiveCategoryAsync(i.CategoryId) ? i.FunctionId : null,
                 CreatedAt = DateTime.UtcNow,
-            });
+            };
+            var functionIds = i.FunctionIds is { Count: > 0 } && await IsMaladaptiveCategoryAsync(i.CategoryId)
+                ? i.FunctionIds.Distinct().ToList()
+                : [];
+            created.Add((item, functionIds));
         }
 
-        _context.GoalTrackerItems.AddRange(items);
+        _context.GoalTrackerItems.AddRange(created.Select(c => c.Item));
         await _context.SaveChangesAsync();
+
+        // Item Ids are available after the first save
+        _context.GoalTrackerItemFunctions.AddRange(created.SelectMany(c =>
+            c.FunctionIds.Select(fid => new GoalTrackerItemFunctions
+            {
+                GoalTrackerItemId = c.Item.Id,
+                FunctionId = fid,
+            })));
+        await _context.SaveChangesAsync();
+
+        await transaction.CommitAsync();
 
         return await BuildResponseAsync(tracker);
     }
@@ -97,16 +113,26 @@ public class GoalTrackerService : IGoalTrackerService
         item.Name = dto.Name.Trim();
         item.MasteryCriteria = dto.MasteryCriteria?.Trim();
         item.StatusId = (byte)dto.StatusId;
-        if (await IsMaladaptiveCategoryAsync(item.CategoryId))
-            item.FunctionId = dto.FunctionId;
+
+        // null = leave functions untouched; empty list = clear them
+        if (dto.FunctionIds != null && await IsMaladaptiveCategoryAsync(item.CategoryId))
+        {
+            var requested = dto.FunctionIds.Distinct().ToList();
+            var current = await _context.GoalTrackerItemFunctions
+                .Where(f => f.GoalTrackerItemId == itemId)
+                .ToListAsync();
+
+            _context.GoalTrackerItemFunctions.RemoveRange(current.Where(c => !requested.Contains(c.FunctionId)));
+            _context.GoalTrackerItemFunctions.AddRange(requested
+                .Where(fid => current.All(c => c.FunctionId != fid))
+                .Select(fid => new GoalTrackerItemFunctions { GoalTrackerItemId = itemId, FunctionId = fid }));
+        }
 
         await _context.SaveChangesAsync();
 
         var status = await _context.GoalTrackerStatus.FindAsync(dto.StatusId);
-        var function = item.FunctionId.HasValue
-            ? await _context.BehaviorFunctions.FindAsync(item.FunctionId.Value)
-            : null;
-        return MapItemToDto(item, status, function?.Name);
+        var functions = await GetItemFunctionsAsync([itemId]);
+        return MapItemToDto(item, status, functions.GetValueOrDefault(itemId));
     }
 
     public async Task<bool> DeleteItemAsync(long itemId)
@@ -114,6 +140,10 @@ public class GoalTrackerService : IGoalTrackerService
         var item = await _context.GoalTrackerItems.FindAsync(itemId);
         if (item == null) return false;
 
+        var links = await _context.GoalTrackerItemFunctions
+            .Where(f => f.GoalTrackerItemId == itemId)
+            .ToListAsync();
+        _context.GoalTrackerItemFunctions.RemoveRange(links);
         _context.GoalTrackerItems.Remove(item);
         await _context.SaveChangesAsync();
         return true;
@@ -132,10 +162,7 @@ public class GoalTrackerService : IGoalTrackerService
             .Where(s => statusIds.Contains(s.Id))
             .ToDictionaryAsync(s => s.Id);
 
-        var functionIds = items.Where(i => i.FunctionId.HasValue).Select(i => i.FunctionId!.Value).Distinct().ToList();
-        var functions = await _context.BehaviorFunctions
-            .Where(f => functionIds.Contains(f.Id))
-            .ToDictionaryAsync(f => f.Id, f => f.Name);
+        var functions = await GetItemFunctionsAsync(items.Select(i => i.Id).ToList());
 
         return new GoalTrackerResponseDto
         {
@@ -144,11 +171,27 @@ public class GoalTrackerService : IGoalTrackerService
             Items = items.Select(i => MapItemToDto(
                 i,
                 statuses.GetValueOrDefault((int)i.StatusId),
-                i.FunctionId.HasValue ? functions.GetValueOrDefault(i.FunctionId.Value) : null)),
+                functions.GetValueOrDefault(i.Id))),
         };
     }
 
-    private static GoalTrackerItemResponseDto MapItemToDto(GoalTrackerItems item, GoalTrackerStatus? status, string? functionName) => new()
+    // Functions per item, in catalog order. Includes deactivated/deleted functions so history is preserved.
+    private async Task<Dictionary<long, List<(int Id, string Name)>>> GetItemFunctionsAsync(List<long> itemIds)
+    {
+        var rows = await (
+            from link in _context.GoalTrackerItemFunctions
+            join fn in _context.BehaviorFunctions on link.FunctionId equals fn.Id
+            where itemIds.Contains(link.GoalTrackerItemId)
+            orderby fn.Id
+            select new { link.GoalTrackerItemId, fn.Id, fn.Name }
+        ).ToListAsync();
+
+        return rows
+            .GroupBy(r => r.GoalTrackerItemId)
+            .ToDictionary(g => g.Key, g => g.Select(r => (r.Id, r.Name)).ToList());
+    }
+
+    private static GoalTrackerItemResponseDto MapItemToDto(GoalTrackerItems item, GoalTrackerStatus? status, List<(int Id, string Name)>? functions) => new()
     {
         Id = item.Id,
         GoalTrackerId = item.GoalTrackerId,
@@ -158,8 +201,8 @@ public class GoalTrackerService : IGoalTrackerService
         StatusId = item.StatusId,
         StatusName = status?.Name ?? "",
         StatusColor = status?.Color ?? "#6b7280",
-        FunctionId = item.FunctionId,
-        FunctionName = functionName,
+        FunctionIds = functions?.Select(f => f.Id).ToList() ?? [],
+        FunctionNames = functions?.Select(f => f.Name).ToList() ?? [],
         CreatedAt = item.CreatedAt,
     };
 }

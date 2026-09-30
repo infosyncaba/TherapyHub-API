@@ -45,6 +45,8 @@ public partial class ContextDB : DbContext
 
     public virtual DbSet<GoalTrackerCategories> GoalTrackerCategories { get; set; }
 
+    public virtual DbSet<GoalTrackerItemFunctions> GoalTrackerItemFunctions { get; set; }
+
     public virtual DbSet<GoalTrackerItems> GoalTrackerItems { get; set; }
 
     public virtual DbSet<GoalTrackerStatus> GoalTrackerStatus { get; set; }
@@ -313,6 +315,15 @@ public partial class ContextDB : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(50)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<GoalTrackerItemFunctions>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_GoalTrackerItemFunctions");
+
+            entity.HasIndex(e => new { e.GoalTrackerItemId, e.FunctionId })
+                .IsUnique()
+                .HasDatabaseName("UX_GoalTrackerItemFunctions_Item_Function");
         });
 
         modelBuilder.Entity<GoalTrackerItems>(entity =>

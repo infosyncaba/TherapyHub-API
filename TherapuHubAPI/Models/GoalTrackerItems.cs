@@ -17,7 +17,5 @@ public partial class GoalTrackerItems
 
     public byte StatusId { get; set; }
 
-    public int? FunctionId { get; set; }
-
     public DateTime CreatedAt { get; set; }
 }
