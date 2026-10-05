@@ -119,10 +119,18 @@ public class ClientsController : ControllerBase
         if (companyId == null)
             return Unauthorized(ApiResponse<ClientResponseDto>.ErrorResponse("CompanyId not found", null, 401));
 
-        var result = await _clientService.UpdateAsync(id, request, companyId.Value);
-        if (result == null)
-            return NotFound(ApiResponse<ClientResponseDto>.NotFoundResponse($"Client with Id {id} not found"));
-        return Ok(ApiResponse<ClientResponseDto>.SuccessResponse(result, "Client updated successfully", 200));
+        try
+        {
+            var result = await _clientService.UpdateAsync(id, request, companyId.Value);
+            if (result == null)
+                return NotFound(ApiResponse<ClientResponseDto>.NotFoundResponse($"Client with Id {id} not found"));
+            return Ok(ApiResponse<ClientResponseDto>.SuccessResponse(result, "Client updated successfully", 200));
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error updating client");
+            return BadRequest(ApiResponse<ClientResponseDto>.ErrorResponse(ex.Message, new List<string> { ex.Message }, 400));
+        }
     }
 
     /// <summary>Delete a client.</summary>

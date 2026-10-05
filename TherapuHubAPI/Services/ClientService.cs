@@ -96,6 +96,8 @@ public class ClientService : IClientService
     {
         _logger.LogInformation("Creating client {FullName} for company {CompanyId}", request.FullName, companyId);
 
+        ValidateAuthorizationDates(request.AuthorizationStartDate, request.AuthorizationEndDate);
+
         var clientCode = await _clientRepositorio.GenerateClientCodeAsync(companyId);
 
         var actor = new Actors
@@ -118,6 +120,8 @@ public class ClientService : IClientService
             RBTId = request.RBTId,
             Emoji = request.Emoji,
             Diagnosis = request.Diagnosis?.Trim(),
+            AuthorizationStartDate = request.AuthorizationStartDate,
+            AuthorizationEndDate = request.AuthorizationEndDate,
             CreatedAt = DateTime.UtcNow,
             Actor = actor,
         };
@@ -141,6 +145,8 @@ public class ClientService : IClientService
         var client = await _clientRepositorio.GetByIdAndCompanyAsync(id, companyId);
         if (client == null) return null;
 
+        ValidateAuthorizationDates(request.AuthorizationStartDate, request.AuthorizationEndDate);
+
         var previousBirthDate = client.BirthDate;
 
         client.Actor.FullName = request.FullName.Trim();
@@ -152,6 +158,8 @@ public class ClientService : IClientService
         client.RBTId = request.RBTId;
         client.Emoji = request.Emoji;
         client.Diagnosis = request.Diagnosis?.Trim();
+        client.AuthorizationStartDate = request.AuthorizationStartDate;
+        client.AuthorizationEndDate = request.AuthorizationEndDate;
 
         _clientRepositorio.Update(client);
         await _unitOfWork.SaveChangesAsync();
@@ -307,7 +315,15 @@ public class ClientService : IClientService
             RBTName = rbt?.Actor.FullName,
             Emoji = c.Emoji,
             Diagnosis = c.Diagnosis,
+            AuthorizationStartDate = c.AuthorizationStartDate,
+            AuthorizationEndDate = c.AuthorizationEndDate,
             CreatedAt = c.CreatedAt,
         };
+    }
+
+    private static void ValidateAuthorizationDates(DateOnly? start, DateOnly? end)
+    {
+        if (start.HasValue && end.HasValue && end.Value < start.Value)
+            throw new InvalidOperationException("Authorization end date cannot be before the start date.");
     }
 }

@@ -23,5 +23,9 @@ public partial class Clients
 
     public string? Diagnosis { get; set; }
 
+    public DateOnly? AuthorizationStartDate { get; set; }
+
+    public DateOnly? AuthorizationEndDate { get; set; }
+
     public int ActorId { get; set; }
 }

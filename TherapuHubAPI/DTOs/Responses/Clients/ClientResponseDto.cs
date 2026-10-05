@@ -24,6 +24,8 @@ public class ClientResponseDto
 
     public string? Emoji { get; set; }
     public string? Diagnosis { get; set; }
+    public DateOnly? AuthorizationStartDate { get; set; }
+    public DateOnly? AuthorizationEndDate { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

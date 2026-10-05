@@ -16,6 +16,8 @@ public class CreateClientRequestDto
 
     public string? Emoji { get; set; }
     public string? Diagnosis { get; set; }
+    public DateOnly? AuthorizationStartDate { get; set; }
+    public DateOnly? AuthorizationEndDate { get; set; }
 }
 
 public class UpdateClientRequestDto
@@ -32,4 +34,6 @@ public class UpdateClientRequestDto
 
     public string? Emoji { get; set; }
     public string? Diagnosis { get; set; }
+    public DateOnly? AuthorizationStartDate { get; set; }
+    public DateOnly? AuthorizationEndDate { get; set; }
 }
