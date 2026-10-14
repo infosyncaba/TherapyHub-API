@@ -16,4 +16,7 @@ public partial class UserTypes
     public DateTime CreatedAt { get; set; }
 
     public bool IsSystem { get; set; }
+
+    /// <summary>When true, users of this type are automatically linked (Supervisor → RBT) to every RBT in their company.</summary>
+    public bool AutoAssignAllRbts { get; set; }
 }

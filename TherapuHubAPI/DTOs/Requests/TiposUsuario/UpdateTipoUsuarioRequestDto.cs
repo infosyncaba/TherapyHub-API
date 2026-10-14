@@ -9,4 +9,7 @@ public class UpdateTipoUsuarioRequestDto
 
     [JsonPropertyName("activo")]
     public bool IsActive { get; set; } = true;
+
+    [JsonPropertyName("autoAssignAllRbts")]
+    public bool AutoAssignAllRbts { get; set; }
 }

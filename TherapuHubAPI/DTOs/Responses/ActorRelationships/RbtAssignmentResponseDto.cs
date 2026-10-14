@@ -7,4 +7,5 @@ public class RbtAssignmentResponseDto
     public string Name { get; set; } = null!;
     public bool IsAssigned { get; set; }
     public long? RelationshipId { get; set; }
+    public bool IsAutoAssigned { get; set; }
 }

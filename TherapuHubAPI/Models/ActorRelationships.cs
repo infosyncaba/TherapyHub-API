@@ -14,4 +14,7 @@ public partial class ActorRelationships
     public DateTime CreatedAt { get; set; }
 
     public int RelationshipTypeId { get; set; }
+
+    /// <summary>True when the relationship was created by the system (UserTypes.AutoAssignAllRbts), not by a user.</summary>
+    public bool IsAutoAssigned { get; set; }
 }

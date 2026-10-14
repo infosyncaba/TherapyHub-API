@@ -12,6 +12,7 @@ public class TipoUsuarioService : ITipoUsuarioService
     private readonly ITipoUsuarioRepositorio _tipoUsuarioRepositorio;
     private readonly IUsuarioRepositorio _usuarioRepositorio;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IRbtAutoAssignmentService _rbtAutoAssignment;
     private readonly IMapper _mapper;
     private readonly ILogger<TipoUsuarioService> _logger;
 
@@ -19,12 +20,14 @@ public class TipoUsuarioService : ITipoUsuarioService
         ITipoUsuarioRepositorio tipoUsuarioRepositorio,
         IUsuarioRepositorio usuarioRepositorio,
         IUnitOfWork unitOfWork,
+        IRbtAutoAssignmentService rbtAutoAssignment,
         IMapper mapper,
         ILogger<TipoUsuarioService> logger)
     {
         _tipoUsuarioRepositorio = tipoUsuarioRepositorio;
         _usuarioRepositorio = usuarioRepositorio;
         _unitOfWork = unitOfWork;
+        _rbtAutoAssignment = rbtAutoAssignment;
         _mapper = mapper;
         _logger = logger;
     }
@@ -102,11 +105,17 @@ public class TipoUsuarioService : ITipoUsuarioService
             }
         }
 
+        var autoAssignChanged = tipoUsuario.AutoAssignAllRbts != request.AutoAssignAllRbts;
+
         _mapper.Map(request, tipoUsuario);
         _tipoUsuarioRepositorio.Update(tipoUsuario);
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("User type updated successfully with Id: {Id}", id);
+
+        // Enabled → link every user of this type to all RBTs of their company; disabled → remove only the auto links
+        if (autoAssignChanged)
+            await _rbtAutoAssignment.SyncForUserTypeAsync(id);
 
         return _mapper.Map<TipoUsuarioResponseDto>(tipoUsuario);
     }

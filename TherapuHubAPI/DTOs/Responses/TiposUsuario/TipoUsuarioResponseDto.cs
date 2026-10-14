@@ -13,4 +13,7 @@ public class TipoUsuarioResponseDto
 
     [JsonPropertyName("fechaCreacion")]
     public DateTime CreatedAt { get; set; }
+
+    [JsonPropertyName("autoAssignAllRbts")]
+    public bool AutoAssignAllRbts { get; set; }
 }

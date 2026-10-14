@@ -14,6 +14,7 @@ public class StaffService : IStaffService
     private readonly IStaffRolesRepositorio _rolesRepositorio;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ContextDB _context;
+    private readonly IRbtAutoAssignmentService _rbtAutoAssignment;
     private readonly ILogger<StaffService> _logger;
 
     public StaffService(
@@ -22,6 +23,7 @@ public class StaffService : IStaffService
         IStaffRolesRepositorio rolesRepositorio,
         IUnitOfWork unitOfWork,
         ContextDB context,
+        IRbtAutoAssignmentService rbtAutoAssignment,
         ILogger<StaffService> logger)
     {
         _staffRepositorio = staffRepositorio;
@@ -29,6 +31,7 @@ public class StaffService : IStaffService
         _rolesRepositorio = rolesRepositorio;
         _unitOfWork = unitOfWork;
         _context = context;
+        _rbtAutoAssignment = rbtAutoAssignment;
         _logger = logger;
     }
 
@@ -82,6 +85,8 @@ public class StaffService : IStaffService
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Staff created with Id: {Id}", staff.Id);
+
+        await _rbtAutoAssignment.SyncForStaffAsync(staff.Id);
 
         if (request.DateOfBirth.HasValue)
         {
@@ -210,6 +215,7 @@ public class StaffService : IStaffService
         staff.Actor.FullName = $"{request.FirstName.Trim()} {request.LastName.Trim()}";
         staff.Actor.Email = request.Email.Trim();
         staff.Actor.Phone = request.Phone.Trim();
+        var roleChanged = staff.RoleId != request.RoleId;
         staff.RoleId = request.RoleId;
         staff.DateOfBirth = request.DateOfBirth ?? staff.DateOfBirth;
         staff.StatusId = request.StatusId;
@@ -218,6 +224,9 @@ public class StaffService : IStaffService
 
         _staffRepositorio.Update(staff);
         await _unitOfWork.SaveChangesAsync();
+
+        if (roleChanged)
+            await _rbtAutoAssignment.SyncForStaffAsync(staff.Id);
 
         try
         {
@@ -237,6 +246,7 @@ public class StaffService : IStaffService
     {
         var staff = await _staffRepositorio.GetByIdAndCompanyAsync(id, companyId);
         if (staff == null) return false;
+        await _rbtAutoAssignment.RemoveForRbtActorAsync(staff.ActorId);
         _staffRepositorio.Remove(staff);
         _context.Actors.Remove(staff.Actor);
         await _unitOfWork.SaveChangesAsync();

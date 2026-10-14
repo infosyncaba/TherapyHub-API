@@ -84,6 +84,7 @@ public class ActorRelationshipService : IActorRelationshipService
                 Name = x.Actor.FullName,
                 IsAssigned = rel != null,
                 RelationshipId = rel?.Id,
+                IsAutoAssigned = rel?.IsAutoAssigned == true,
             };
         }).OrderBy(r => r.Name).ToList();
     }

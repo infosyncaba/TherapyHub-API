@@ -72,6 +72,7 @@ builder.Services.AddScoped<IBehaviorFunctionsService, BehaviorFunctionsService>(
 builder.Services.AddScoped<IGoalTrackerService, GoalTrackerService>();
 builder.Services.AddScoped<ISessionNotesService, SessionNotesService>();
 builder.Services.AddScoped<IActorRelationshipService, ActorRelationshipService>();
+builder.Services.AddScoped<IRbtAutoAssignmentService, RbtAutoAssignmentService>();
 builder.Services.AddScoped<INoteCategoryService, NoteCategoryService>();
 builder.Services.AddScoped<ILibraryItemService, LibraryItemService>();
 builder.Services.AddSingleton<IFileStorageService, CloudflareR2StorageService>();

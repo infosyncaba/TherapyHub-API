@@ -17,6 +17,7 @@ public class UsuarioService : IUsuarioService
     private readonly ICompaniaRepositorio _companiaRepositorio;
     private readonly IUnitOfWork _unitOfWork;
     private readonly ContextDB _context;
+    private readonly IRbtAutoAssignmentService _rbtAutoAssignment;
     private readonly IMapper _mapper;
     private readonly ILogger<UsuarioService> _logger;
 
@@ -26,6 +27,7 @@ public class UsuarioService : IUsuarioService
         ICompaniaRepositorio companiaRepositorio,
         IUnitOfWork unitOfWork,
         ContextDB context,
+        IRbtAutoAssignmentService rbtAutoAssignment,
         IMapper mapper,
         ILogger<UsuarioService> logger)
     {
@@ -34,6 +36,7 @@ public class UsuarioService : IUsuarioService
         _companiaRepositorio = companiaRepositorio;
         _unitOfWork = unitOfWork;
         _context = context;
+        _rbtAutoAssignment = rbtAutoAssignment;
         _mapper = mapper;
         _logger = logger;
     }
@@ -131,6 +134,8 @@ public class UsuarioService : IUsuarioService
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Usuario creado exitosamente con Id: {Id}", usuario.Id);
+
+        await _rbtAutoAssignment.SyncForUserAsync(usuario.Id);
 
         var tipoUsuarioParaResponse = await _tipoUsuarioRepositorio.GetByIdAsync(usuario.UserTypeId);
         var response = MapToResponseDto(usuario);
@@ -262,6 +267,8 @@ public class UsuarioService : IUsuarioService
 
         _logger.LogInformation("Usuario actualizado exitosamente con Id: {Id}", id);
 
+        await _rbtAutoAssignment.SyncForUserAsync(id);
+
         var tipoUsuarioParaResponse = await _tipoUsuarioRepositorio.GetByIdAsync(usuario.UserTypeId);
         var response = MapToResponseDto(usuario);
         response.TipoUsuarioNombre = tipoUsuarioParaResponse?.Name ?? string.Empty;
@@ -290,6 +297,8 @@ public class UsuarioService : IUsuarioService
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("User soft deleted. Id: {Id}", id);
+
+        await _rbtAutoAssignment.SyncForUserAsync(id);
         return true;
     }
 
@@ -310,6 +319,8 @@ public class UsuarioService : IUsuarioService
         await _unitOfWork.SaveChangesAsync();
 
         _logger.LogInformation("Estado del usuario cambiado exitosamente. Id: {Id}, Nuevo estado: {IsActive}", id, usuario.IsActive);
+
+        await _rbtAutoAssignment.SyncForUserAsync(id);
         return true;
     }
 

@@ -17,6 +17,7 @@ public class AuthService : IAuthService
     private readonly IUsuarioRepositorio _usuarioRepositorio;
     private readonly ITipoUsuarioRepositorio _tipoUsuarioRepositorio;
     private readonly ICompaniaRepositorio _companiaRepositorio;
+    private readonly IRbtAutoAssignmentService _rbtAutoAssignment;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthService> _logger;
 
@@ -24,12 +25,14 @@ public class AuthService : IAuthService
         IUsuarioRepositorio usuarioRepositorio,
         ITipoUsuarioRepositorio tipoUsuarioRepositorio,
         ICompaniaRepositorio companiaRepositorio,
+        IRbtAutoAssignmentService rbtAutoAssignment,
         IConfiguration configuration,
         ILogger<AuthService> logger)
     {
         _usuarioRepositorio = usuarioRepositorio;
         _tipoUsuarioRepositorio = tipoUsuarioRepositorio;
         _companiaRepositorio = companiaRepositorio;
+        _rbtAutoAssignment = rbtAutoAssignment;
         _configuration = configuration;
         _logger = logger;
     }
@@ -69,6 +72,19 @@ public class AuthService : IAuthService
         var tipoUsuarioNombre = tipoUsuario?.Name ?? string.Empty;
 
         var token = GenerateJwtToken(usuario, tipoUsuarioNombre, tipoUsuario?.IsSystem == true);
+
+        // Recreate any auto RBT relationship that was removed by hand (or RBTs added while the flag was on)
+        if (tipoUsuario?.AutoAssignAllRbts == true)
+        {
+            try
+            {
+                await _rbtAutoAssignment.SyncForUserAsync(usuario.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "RBT auto-assignment sync failed on login for user Id: {Id}", usuario.Id);
+            }
+        }
 
         const string defaultPassword = "123456";
         bool requiresPasswordReset = usuario.MustResetPassword && request.Contrasena == defaultPassword;
