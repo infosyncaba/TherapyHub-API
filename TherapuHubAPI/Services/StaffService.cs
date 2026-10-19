@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using TherapuHubAPI.DTOs.Requests.Staff;
 using TherapuHubAPI.DTOs.Responses.Staff;
 using TherapuHubAPI.Models;
@@ -40,7 +41,23 @@ public class StaffService : IStaffService
         var staff = await _staffRepositorio.GetByCompanyIdAsync(companyId);
         var statuses = (await _statusRepositorio.GetAllAsync()).ToList();
         var roles = (await _rolesRepositorio.GetAllAsync()).ToList();
-        return staff.Select(s => MapToDto(s, statuses, roles));
+
+        // RBT → Client relationships (RelationshipType 3), excluding deleted clients
+        var actorIds = staff.Select(s => s.ActorId).ToList();
+        var clientCounts = await _context.ActorRelationships
+            .Where(r => actorIds.Contains(r.SourceActorId) && r.RelationshipTypeId == 3)
+            .Join(_context.Actors, r => r.TargetActorId, a => a.Id, (r, a) => new { r.SourceActorId, Actor = a })
+            .Where(x => !x.Actor.IsDeleted)
+            .GroupBy(x => x.SourceActorId)
+            .Select(g => new { ActorId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ActorId, x => x.Count);
+
+        return staff.Select(s =>
+        {
+            var dto = MapToDto(s, statuses, roles);
+            dto.AssignedClientCount = clientCounts.GetValueOrDefault(s.ActorId);
+            return dto;
+        });
     }
 
     public async Task<StaffResponseDto?> GetByIdAsync(int id, int companyId)

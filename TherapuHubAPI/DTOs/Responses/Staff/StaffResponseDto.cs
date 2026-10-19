@@ -21,4 +21,5 @@ public class StaffResponseDto
     public DateOnly? ContractDate { get; set; }
     public DateTime CreatedAt { get; set; }
     public bool IsActive { get; set; }
+    public int AssignedClientCount { get; set; }
 }
