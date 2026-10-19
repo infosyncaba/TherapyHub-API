@@ -79,6 +79,8 @@ public partial class ContextDB : DbContext
 
     public virtual DbSet<BehaviorFunctions> BehaviorFunctions { get; set; }
 
+    public virtual DbSet<ComplianceItems> ComplianceItems { get; set; }
+
     public virtual DbSet<SessionNotesStatus> SessionNotesStatus { get; set; }
 
     public virtual DbSet<SessionsNotes> SessionsNotes { get; set; }
@@ -509,6 +511,23 @@ public partial class ContextDB : DbContext
             entity.Property(e => e.Name)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<ComplianceItems>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK_ComplianceItems");
+
+            entity.HasIndex(e => new { e.UserId, e.ExpirationDate }, "IX_ComplianceItems_UserId_ExpirationDate");
+
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.RegistrationDate).HasColumnType("date");
+            entity.Property(e => e.ExpirationDate).HasColumnType("date");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("NOW()")
+                .HasColumnType("timestamp with time zone");
+            entity.Property(e => e.UpdatedAt).HasColumnType("timestamp with time zone");
+            entity.Property(e => e.IsDelete).HasDefaultValue(false);
+            entity.Property(e => e.DeleteAt).HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<SessionNotesStatus>(entity =>

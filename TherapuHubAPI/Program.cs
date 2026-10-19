@@ -50,6 +50,7 @@ builder.Services.AddScoped<IGoalTrackerCategoriesRepositorio, GoalTrackerCategor
 builder.Services.AddScoped<IGoalTrackersRepositorio, GoalTrackersRepositorio>();
 builder.Services.AddScoped<IGoalTrackerItemsRepositorio, GoalTrackerItemsRepositorio>();
 builder.Services.AddScoped<ILibraryItemRepositorio, LibraryItemRepositorio>();
+builder.Services.AddScoped<IComplianceItemsRepositorio, ComplianceItemsRepositorio>();
 
 // Services
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -75,6 +76,7 @@ builder.Services.AddScoped<IActorRelationshipService, ActorRelationshipService>(
 builder.Services.AddScoped<IRbtAutoAssignmentService, RbtAutoAssignmentService>();
 builder.Services.AddScoped<INoteCategoryService, NoteCategoryService>();
 builder.Services.AddScoped<ILibraryItemService, LibraryItemService>();
+builder.Services.AddScoped<IComplianceItemsService, ComplianceItemsService>();
 builder.Services.AddSingleton<IFileStorageService, CloudflareR2StorageService>();
 
 // AutoMapper

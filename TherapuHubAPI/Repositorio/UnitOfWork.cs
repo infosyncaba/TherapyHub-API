@@ -19,6 +19,7 @@ public interface IUnitOfWork : IDisposable
     ISessionNotesStatusRepositorio SessionNotesStatuses { get; }
     IBehaviorFunctionsRepositorio BehaviorFunctions { get; }
     ILibraryItemRepositorio LibraryItems { get; }
+    IComplianceItemsRepositorio ComplianceItems { get; }
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();
@@ -43,6 +44,7 @@ public class UnitOfWork : IUnitOfWork
     public ISessionNotesStatusRepositorio SessionNotesStatuses { get; private set; }
     public IBehaviorFunctionsRepositorio BehaviorFunctions { get; private set; }
     public ILibraryItemRepositorio LibraryItems { get; private set; }
+    public IComplianceItemsRepositorio ComplianceItems { get; private set; }
 
     public UnitOfWork(ContextDB context)
     {
@@ -60,6 +62,7 @@ public class UnitOfWork : IUnitOfWork
         SessionNotesStatuses = new SessionNotesStatusRepositorio(_context);
         BehaviorFunctions = new BehaviorFunctionsRepositorio(_context);
         LibraryItems = new LibraryItemRepositorio(_context);
+        ComplianceItems = new ComplianceItemsRepositorio(_context);
     }
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
