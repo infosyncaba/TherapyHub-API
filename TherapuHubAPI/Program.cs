@@ -77,7 +77,11 @@ builder.Services.AddScoped<IRbtAutoAssignmentService, RbtAutoAssignmentService>(
 builder.Services.AddScoped<INoteCategoryService, NoteCategoryService>();
 builder.Services.AddScoped<ILibraryItemService, LibraryItemService>();
 builder.Services.AddScoped<IComplianceItemsService, ComplianceItemsService>();
-builder.Services.AddSingleton<IFileStorageService, CloudflareR2StorageService>();
+// File storage: "Azure" uses Azure Blob Storage; anything else (or unset) keeps Cloudflare R2
+if (string.Equals(builder.Configuration["Storage:Provider"], "Azure", StringComparison.OrdinalIgnoreCase))
+    builder.Services.AddSingleton<IFileStorageService, AzureBlobStorageService>();
+else
+    builder.Services.AddSingleton<IFileStorageService, CloudflareR2StorageService>();
 
 // AutoMapper
 builder.Services.AddAutoMapper(typeof(Program));
@@ -114,12 +118,12 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-// CORS Configuration
-builder.Services.AddCors(options =>
+// CORS Configuration: Cors:AllowedOrigins overrides the default list below
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+if (corsOrigins == null || corsOrigins.Length == 0)
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    corsOrigins = new[]
     {
-        policy.WithOrigins(
                 "http://localhost:8080",
                 "http://localhost:8082",
                 "http://localhost:5173",
@@ -137,7 +141,14 @@ builder.Services.AddCors(options =>
                 "https://syncaba.org",
                 "https://www.syncaba.org",
                 "https://therapyhub-suite.info-syncaba.workers.dev"
-              )
+    };
+}
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(corsOrigins)
               .AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
@@ -186,12 +197,16 @@ builder.Services.AddSwaggerGen(c =>
 
 var app = builder.Build();
 
-app.UseSwagger();
-app.UseSwaggerUI(c =>
+// Swagger stays on unless Swagger:Enabled = false (set to false in Azure production)
+if (builder.Configuration.GetValue("Swagger:Enabled", true))
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TherapuHub API v1");
-    c.RoutePrefix = "swagger";
-});
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "TherapuHub API v1");
+        c.RoutePrefix = "swagger";
+    });
+}
 
 app.UseCors("AllowFrontend");
 
