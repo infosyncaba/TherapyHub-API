@@ -91,6 +91,37 @@ public class AuthService : IAuthService
 
         _logger.LogInformation("Login successful for user: {Correo}", request.Correo);
 
+        return BuildLoginResponse(usuario, tipoUsuario, token, requiresPasswordReset);
+    }
+
+    /// <summary>
+    /// Issues a fresh short-lived token for an already authenticated user (sliding session).
+    /// Returns null if the user or its company is no longer active.
+    /// </summary>
+    public async Task<LoginResponseDto?> RefreshTokenAsync(int userId)
+    {
+        var usuario = await _usuarioRepositorio.GetByIdAsync(userId);
+        if (usuario == null || !usuario.IsActive)
+        {
+            _logger.LogWarning("Token refresh rejected: user {Id} not found or inactive", userId);
+            return null;
+        }
+
+        var compania = await _companiaRepositorio.GetByIdCompaniaAsync(usuario.Actor.CompanyId);
+        if (compania != null && !compania.IsActive)
+        {
+            _logger.LogWarning("Token refresh rejected: company {CompanyId} inactive for user {Id}", usuario.Actor.CompanyId, userId);
+            return null;
+        }
+
+        var tipoUsuario = await _tipoUsuarioRepositorio.GetByIdAsync(usuario.UserTypeId);
+        var token = GenerateJwtToken(usuario, tipoUsuario?.Name ?? string.Empty, tipoUsuario?.IsSystem == true);
+
+        return BuildLoginResponse(usuario, tipoUsuario, token, requiresPasswordReset: false);
+    }
+
+    private LoginResponseDto BuildLoginResponse(Models.Users usuario, UserTypes? tipoUsuario, string token, bool requiresPasswordReset)
+    {
         return new LoginResponseDto
         {
             Id = usuario.Id,
@@ -98,20 +129,22 @@ public class AuthService : IAuthService
             Correo = usuario.Actor.Email ?? string.Empty,
             Nombre = usuario.Actor.FullName,
             UserTypeId = usuario.UserTypeId,
-            TipoUsuarioNombre = tipoUsuarioNombre,
-            ExpiraEn = DateTime.UtcNow.AddHours(24),
+            TipoUsuarioNombre = tipoUsuario?.Name ?? string.Empty,
+            ExpiraEn = DateTime.UtcNow.AddMinutes(GetJwtExpirationMinutes()),
             RequiresPasswordReset = requiresPasswordReset,
             EsSistema = tipoUsuario?.IsSystem == true,
             ActorId = usuario.ActorId
         };
     }
 
+    private int GetJwtExpirationMinutes() =>
+        int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "15");
+
     private string GenerateJwtToken(Models.Users usuario, string tipoUsuarioNombre, bool isSystem)
     {
         var jwtKey = _configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured");
         var jwtIssuer = _configuration["Jwt:Issuer"] ?? "TherapuHubAPI";
         var jwtAudience = _configuration["Jwt:Audience"] ?? "TherapuHubAPI";
-        var jwtExpirationHours = int.Parse(_configuration["Jwt:ExpirationHours"] ?? "24");
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -133,7 +166,7 @@ public class AuthService : IAuthService
             issuer: jwtIssuer,
             audience: jwtAudience,
             claims: claims,
-            expires: DateTime.UtcNow.AddHours(jwtExpirationHours),
+            expires: DateTime.UtcNow.AddMinutes(GetJwtExpirationMinutes()),
             signingCredentials: credentials
         );
 

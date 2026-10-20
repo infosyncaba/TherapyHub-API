@@ -74,6 +74,47 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Issues a new short-lived token while the user is active (sliding session for idle logout).
+    /// </summary>
+    [HttpPost("refresh")]
+    [Authorize]
+    [ProducesResponseType(typeof(ApiResponse<LoginResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ApiResponse<LoginResponseDto>>> Refresh()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out int userId))
+            {
+                return Unauthorized();
+            }
+
+            var result = await _authService.RefreshTokenAsync(userId);
+            if (result == null)
+            {
+                return Unauthorized(ApiResponse<LoginResponseDto>.ErrorResponse(
+                    "Session is no longer valid",
+                    new List<string> { "User or company is inactive" },
+                    401));
+            }
+
+            return Ok(ApiResponse<LoginResponseDto>.SuccessResponse(
+                result,
+                "Token refreshed",
+                200));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error refreshing token");
+            return StatusCode(500, ApiResponse<LoginResponseDto>.ErrorResponse(
+                "Internal server error",
+                new List<string> { "An error occurred while processing the request" },
+                500));
+        }
+    }
+
+    /// <summary>
     /// Sets the initial password when user has logged in with default password (123456) and MustResetPassword is true.
     /// </summary>
     [HttpPost("set-initial-password")]
