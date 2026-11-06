@@ -1,11 +1,10 @@
 # Despliega el API a Azure App Service.
-# Mientras dure la migración solo corre con la rama migracion-azure.
-# Render sigue desplegando master por su integración propia; este workflow no lo afecta.
+# Se ejecuta con cada push a master (producción en Azure).
 name: Deploy API to Azure
 
 on:
   push:
-    branches: [migracion-azure]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
