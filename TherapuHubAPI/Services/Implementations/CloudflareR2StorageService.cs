@@ -60,11 +60,18 @@ public class CloudflareR2StorageService : IFileStorageService
             Key = blobPath
         };
 
-        var response = await _s3Client.GetObjectAsync(request);
-        var contentType = response.Headers.ContentType ?? ResolveContentType(blobPath);
-        var fileName = Path.GetFileName(blobPath);
+        try
+        {
+            var response = await _s3Client.GetObjectAsync(request);
+            var contentType = response.Headers.ContentType ?? ResolveContentType(blobPath);
+            var fileName = Path.GetFileName(blobPath);
 
-        return (response.ResponseStream, contentType, fileName);
+            return (response.ResponseStream, contentType, fileName);
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            throw new FileNotFoundException($"File not found: {blobPath}", ex);
+        }
     }
 
     public async Task<long> GetFileSizeAsync(string blobPath)

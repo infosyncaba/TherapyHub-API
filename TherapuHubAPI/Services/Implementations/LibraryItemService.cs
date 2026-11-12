@@ -1,4 +1,3 @@
-using Amazon.S3;
 using TherapuHubAPI.DTOs.Requests.Library;
 using TherapuHubAPI.DTOs.Responses.Library;
 using TherapuHubAPI.Models;
@@ -183,16 +182,12 @@ public class LibraryItemService : ILibraryItemService
         }
         catch (FileNotFoundException)
         {
+            _logger.LogWarning("Storage object not found for blob path: {BlobPath}", entry.BlobPath);
             return null;
         }
-        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        catch (Exception ex)
         {
-            _logger.LogWarning("R2 object not found for blob path: {BlobPath}", entry.BlobPath);
-            return null;
-        }
-        catch (AmazonS3Exception ex)
-        {
-            _logger.LogError(ex, "R2 error downloading blob: {BlobPath}", entry.BlobPath);
+            _logger.LogError(ex, "Storage error downloading blob: {BlobPath}", entry.BlobPath);
             throw;
         }
     }
