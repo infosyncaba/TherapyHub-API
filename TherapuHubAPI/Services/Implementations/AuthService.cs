@@ -137,8 +137,10 @@ public class AuthService : IAuthService
         };
     }
 
+    // A bit longer than the 15-minute idle logout on the frontend, so a user who returns
+    // just before the idle limit can still refresh before the token expires.
     private int GetJwtExpirationMinutes() =>
-        int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "15");
+        int.Parse(_configuration["Jwt:ExpirationMinutes"] ?? "20");
 
     private string GenerateJwtToken(Models.Users usuario, string tipoUsuarioNombre, bool isSystem)
     {
